@@ -1,0 +1,69 @@
+// use prisma-8
+model User {
+  id        Uuid                       @id @onCreate(uuid())
+  fullname  String
+  email     String                     @unique
+  phone     String                     @unique
+  address   String
+  orders    Order[]
+  createdAt TimestamptzString          @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Product {
+  id          Uuid                       @id @onCreate(uuid())
+  title       String
+  description String?
+  stock       Int                        @default(0)
+  price       Numeric(10, 2)
+  isActive    boolean()                  @default(true)
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  @@index([title])
+  @@check(expression: sql`price >= 0`, name: "product_price_non_negative")
+  @@check(expression: sql`stock >= 0`, name: "product_stock_non_negative")
+}
+
+model Order {
+  id              Uuid                       @id @onCreate(uuid())
+  userId          Uuid
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  shippingAddress String
+  status          OrderStatus                @default(PENDING)
+  totalAmount     Numeric(10, 2)
+  items           OrderItem[]
+  createdAt       TimestamptzString          @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@check(expression: sql`"totalAmount" >= 0`, name: "order_total_non_negative")
+}
+
+model OrderItem {
+  id        Uuid                       @id @onCreate(uuid())
+  orderId   Uuid
+  productId Uuid
+  price     Numeric(10, 2)
+  quantity  Int                        @default(1)
+  createdAt TimestamptzString          @default(now())
+  updatedAt temporal.updatedAtString()
+
+  order     Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product                    @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([productId, orderId])
+  @@check(expression: sql`price >= 0`, name: "order_item_price_non_negative")
+  @@check(expression: sql`quantity > 0`, name: "order_item_quantity_positive")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
