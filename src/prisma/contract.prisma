@@ -21,8 +21,7 @@ model Product {
   updatedAt   temporal.updatedAtString()
 
   @@index([title])
-  @@check(expression: sql`price >= 0`, name: "product_price_non_negative")
-  @@check(expression: sql`stock >= 0`, name: "product_stock_non_negative")
+
 }
 
 model Order {
@@ -38,7 +37,7 @@ model Order {
 
   @@index([userId, createdAt])
   @@index([status])
-  @@check(expression: sql`"totalAmount" >= 0`, name: "order_total_non_negative")
+
 }
 
 model OrderItem {
@@ -54,8 +53,7 @@ model OrderItem {
   product   Product                    @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@index([productId, orderId])
-  @@check(expression: sql`price >= 0`, name: "order_item_price_non_negative")
-  @@check(expression: sql`quantity > 0`, name: "order_item_quantity_positive")
+  
 }
 
 enum OrderStatus {
