@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 
 @Injectable()
@@ -8,5 +8,9 @@ export class UsersService {
 
   async register(createUserDto: CreateUserDto) {
     return await this.prisma.orm.User.create(createUserDto);
+  }
+
+  async findUserById(userId: string) {
+    return await this.prisma.orm.User.where({ id: userId }).first();
   }
 }
